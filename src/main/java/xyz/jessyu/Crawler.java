@@ -16,15 +16,24 @@ public class Crawler {
     private WebDriver driver;
 
     public Crawler() {
+        System.out.println("Initializing Facebook Crawler...");
+        System.out.println("Facebook URL: " + FACEBOOK);
+        System.out.println("Group URL: " + GROUP_URL);
+        System.out.println("Chrome User Data Directory: " + CHROME_USER_DATA);
         options = new ChromeOptions();
         options.addArguments("user-data-dir=" + CHROME_USER_DATA);
+        System.out.println("Chrome User Data Directory: " + CHROME_USER_DATA);
         options.addArguments("profile-directory=Default");
 
+        System.out.println("Chrome Profile Directory: Default");
         driver = new ChromeDriver(options);
+
+        System.out.println("Facebook Crawler initialized.");
     }
 
     public void crawl() {
         try {
+            System.out.println("Starting Facebook Crawler...");
             driver.get(FACEBOOK);
             System.out.println("After Login Facebook, press enter on the keyboard to continue:");
             System.in.read();

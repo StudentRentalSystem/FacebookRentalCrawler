@@ -12,16 +12,14 @@ public final class Settings {
         String chromeUserData;
 
         if (OS_NAME.contains("Windows")) {
-            // Windows: C:\Users\<User>\AppData\Local\Google\Chrome\User Data
-            chromeUserData = USER_HOME + File.separator + "AppData" + File.separator +
-                    "Local" + File.separator + "Google" + File.separator + "Chrome" + File.separator + "User Data";
+            // Windows: C:\Users\<User>\fb-crawler
+            chromeUserData = USER_HOME + File.separator + "fb-crawler";
         } else if (OS_NAME.contains("Mac")) {
-            // macOS: /Users/<User>/Library/Application Support/Google/Chrome
-            chromeUserData = USER_HOME + File.separator + "Library" + File.separator +
-                    "Application Support" + File.separator + "Google" + File.separator + "Chrome";
+            // macOS: /Users/<User>/fb-crawler
+            chromeUserData = USER_HOME + File.separator + "fb-crawler";
         } else if (OS_NAME.contains("Linux")) {
-            // Linux: /home/<User>/.config/google-chrome
-            chromeUserData = USER_HOME + File.separator + ".config" + File.separator + "google-chrome";
+            // Linux: /home/<User>/fb-crawler
+            chromeUserData = USER_HOME + File.separator + "fb-crawler";
         } else {
             throw new UnsupportedOperationException("Unsupported OS: " + OS_NAME);
         }
