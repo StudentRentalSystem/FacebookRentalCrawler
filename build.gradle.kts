@@ -13,6 +13,7 @@ dependencies {
     implementation("org.seleniumhq.selenium:selenium-java:4.20.0")
     implementation(platform("org.mongodb:mongodb-driver-bom:5.4.0"))
     implementation("org.mongodb:mongodb-driver-sync")
+    implementation("org.json:json:20231013")
     testImplementation(platform("org.junit:junit-bom:5.10.0"))
     testImplementation("org.junit.jupiter:junit-jupiter")
 }

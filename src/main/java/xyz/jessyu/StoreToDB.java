@@ -3,30 +3,28 @@ package xyz.jessyu;
 import com.mongodb.ConnectionString;
 import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoClients;
-import com.mongodb.client.MongoCollection;
-import com.mongodb.client.MongoDatabase;
-import org.bson.Document;
+import org.openqa.selenium.json.Json;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class StoreToDB {
-    private static final String DB_URL = "mongodb://app:house_rental_app$@localhost/house_rental";
-    private final MongoClient mongoClient = MongoClients.create(new ConnectionString(DB_URL));
+    private static final String DB_URL = Settings.getDbUrl();
+    public final MongoClient mongoClient = MongoClients.create(new ConnectionString(DB_URL));
+    private List<String> posts;
+    private List<Json> processedPosts;
 
-    public static void main(String[] args) {
-        StoreToDB storeToDB = new StoreToDB();
-        MongoDatabase database = storeToDB.mongoClient.getDatabase("house_rental");
-        MongoCollection<Document> collection = database.getCollection("posts");
-        Document document = new Document("title", "Sample Title")
-                .append("content", "Sample Content")
-                .append("author", "Sample Author")
-                .append("date", "2023-10-01");
-        collection.insertOne(document);
-        System.out.println("Document inserted: " + document);
-        System.out.println("Database name: " + database.getName());
-        System.out.println("Database created: " + database);
-        System.out.println("MongoClient created: " + storeToDB.mongoClient);
+    public StoreToDB(List<String> posts) {
+        this.posts = posts;
+        this.processedPosts = new ArrayList<>();
+        processPosts();
     }
-    public StoreToDB() {
 
+    public void processPosts() {
+
+    }
+
+    public void insertPost() {
 
     }
 }

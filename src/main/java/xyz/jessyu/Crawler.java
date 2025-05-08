@@ -99,7 +99,7 @@ public class Crawler {
                     Thread.sleep(1000);
                 }
             } catch (Exception e) {
-                System.out.println("跳過一個 `See more`： " + e.getMessage());
+                System.out.println("Skip a `See more`： " + e.getMessage());
             }
         }
         // Wait for the posts to load
@@ -113,7 +113,7 @@ public class Crawler {
                 System.out.println("------------------------");
                 boolean result = addPost(text);
                 if(!result) {
-                    System.out.println("這篇貼文已經存在，跳過。");
+                    System.out.println("The post has existed.");
                 }
             }
         }
@@ -131,7 +131,7 @@ public class Crawler {
 
                 // Check if the posts list is empty
                 if (posts.isEmpty()) {
-                    System.out.println("找不到貼文元素，跳過滾動。");
+                    System.out.println("Unable to find the posts.");
                     break;
                 }
 
@@ -143,7 +143,7 @@ public class Crawler {
                 Thread.sleep(600);
 
             } catch (Exception e) {
-                System.out.println("滾動錯誤：" + e.getMessage());
+                System.out.println("Scrolling error：" + e.getMessage());
             }
         }
     }
