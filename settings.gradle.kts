@@ -1,2 +1,2 @@
-rootProject.name = "FacebookRentalCrawer"
+rootProject.name = "FacebookRentalCrawler"
 
