@@ -5,6 +5,7 @@ import java.io.File;
 public final class Settings {
     private static final String FACEBOOK = "https://www.facebook.com/";
     private static final String GROUP_URL = System.getenv("FACEBOOK_GROUP_URL");
+    private static final String DB_URL = System.getenv("DB_URL");
     private static final String USER_HOME = System.getProperty("user.home");
     private static final String OS_NAME = System.getProperty("os.name");
 
@@ -33,5 +34,9 @@ public final class Settings {
 
     public static String getGroupUrl() {
         return GROUP_URL;
+    }
+
+    public static String getDbUrl() {
+        return DB_URL;
     }
 }

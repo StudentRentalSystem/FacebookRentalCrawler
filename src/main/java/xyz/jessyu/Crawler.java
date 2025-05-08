@@ -9,21 +9,35 @@ import org.openqa.selenium.support.ui.Wait;
 
 
 import java.io.IOException;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.time.Duration;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
+/**
+ * <p>
+ *     This class is used to crawl posts from a Facebook group.
+ *     It uses Selenium WebDriver to automate the browser and
+ *     interact with the Facebook website.
+ *     To use this class, follow the steps:
+ *     1. Call the constructor to initialize the crawler.
+ *     2. Call the crawl() method to start crawling.
+ *     3. Call getPostMap() to get the crawled posts.
+ * </p>
+ * @author JessYu-1011
+ * */
 public class Crawler {
     private static final String FACEBOOK = Settings.getFacebookUrl();
     private static final String GROUP_URL = Settings.getGroupUrl();
     private static final String CHROME_USER_DATA = Settings.getChromeUserData();
+    private int scrollCount;
     private ChromeOptions options;
     private WebDriver driver;
     private Wait<WebDriver> wait;
     private JavascriptExecutor js;
-    private ArrayList<String> postList;
+    private Map<String, String> postMap;
 
-    public Crawler() {
+    public Crawler(int scrollCount) {
         System.out.println("Initializing Facebook Crawler...");
         System.out.println("Facebook URL: " + FACEBOOK);
         System.out.println("Group URL: " + GROUP_URL);
@@ -37,11 +51,12 @@ public class Crawler {
 
         System.out.println("Facebook Crawler initialized.");
 
+        this.scrollCount =  scrollCount;
         wait = new FluentWait<>(driver)
                 .withTimeout(Duration.ofSeconds(3))
                 .pollingEvery(Duration.ofMillis(100));
         js = (JavascriptExecutor) driver;
-        postList = new ArrayList<>();
+        postMap = new HashMap<>();
     }
 
     public void crawl() {
@@ -58,27 +73,18 @@ public class Crawler {
             );
 
             // Scroll one post each time
-            for(int i = 0 ; i < 10; i++) {
+            for(int i = 0 ; i < scrollCount; i++) {
                 crawlOnePage();
                 scrollDownOnePostEachTime(1);
                 Thread.sleep(1000);
             }
             System.out.println("\nPress Enter to exit.");
             System.in.read();
-        } catch (IOException e) {
-            e.getMessage();
-        } catch (InterruptedException e) {
-            throw new RuntimeException(e);
+        } catch (IOException | InterruptedException e) {
+            System.out.println(e.getMessage());
         } finally {
             driver.quit();
         }
-
-        // Delete the last post
-        if (!postList.isEmpty()) {
-            postList.remove(postList.size() - 1);
-        }
-
-
     }
 
     private void crawlOnePage() {
@@ -101,16 +107,23 @@ public class Crawler {
 
         for (WebElement post : postElements) {
             String text = post.getText().trim();
-            if (!text.isEmpty()) {
+            if (!text.isEmpty() && !text.contains("See more")) {
                 System.out.println("------------------------");
                 System.out.println(text);
                 System.out.println("------------------------");
-                postList.add(text);
+                boolean result = addPost(text);
+                if(!result) {
+                    System.out.println("這篇貼文已經存在，跳過。");
+                }
             }
         }
     }
 
-    public void scrollDownOnePostEachTime(int times) {
+    /**
+     * Scroll down one post each time.
+     * This method is used to scroll down the page to load more posts.
+     * */
+    private void scrollDownOnePostEachTime(int times) {
         for (int i = 0; i < times; i++) {
             try {
                 // The posts in this html
@@ -133,6 +146,44 @@ public class Crawler {
                 System.out.println("滾動錯誤：" + e.getMessage());
             }
         }
+    }
+
+    /**
+     * Add a post to the post map.
+     * By using SHA-1 hash to check if the post already exists.
+     * If the post already exists, it will not be added again.
+     * @return the result of the operation.
+     * */
+    private boolean addPost(String content) {
+        MessageDigest digest = null;
+        try {
+            digest = MessageDigest.getInstance("SHA-1");
+        } catch (NoSuchAlgorithmException e) {
+            throw new RuntimeException(e);
+        }
+        byte[] hash = digest.digest(content.getBytes());
+        StringBuilder sb = new StringBuilder();
+        for(byte b : hash) {
+            sb.append(String.format("%02x", b));
+        }
+        String hashContent = sb.toString();
+        if(!postMap.containsKey(hashContent)){
+            postMap.put(hashContent, content);
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * Get the crawled posts.
+     * @return A list of crawled posts (The content of the posts).
+     */
+    public List<String> getPostMap() {
+        List<String> posts = new ArrayList<>();
+        for (Map.Entry<String, String> entry : postMap.entrySet()) {
+            posts.add(entry.getValue());
+        }
+        return posts;
     }
 
 }
