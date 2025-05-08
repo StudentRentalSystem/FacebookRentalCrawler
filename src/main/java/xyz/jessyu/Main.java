@@ -1,5 +1,7 @@
 package xyz.jessyu;
 
+import java.util.List;
+
 public class Main {
     /**
      * <p>
@@ -12,6 +14,8 @@ public class Main {
         int scrollCount = Integer.parseInt(args[0]);
         Crawler crawler = new Crawler(scrollCount);
         crawler.crawl();
-
+        List<String> posts = crawler.getPostsList();
+        StoreToDB sTDB = new StoreToDB(posts);
+        sTDB.insertPostToDB();
     }
 }

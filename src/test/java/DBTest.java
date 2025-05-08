@@ -9,8 +9,6 @@ public class DBTest {
             StoreToDB storeToDB = new StoreToDB(null);
             MongoDatabase database = storeToDB.mongoClient.getDatabase("app");
             MongoCollection<Document> collection = database.getCollection("house_rental");
-            Document houseRental = new Document("租金", 500);
-            InsertOneResult insertOneResult = collection.insertOne(houseRental);
-            System.out.println(insertOneResult.getInsertedId().asObjectId().getValue());
+
         }
 }

@@ -3,10 +3,18 @@ plugins {
     id("maven-publish")
 }
 
-group = "xyz.jessyu"
+group = "io.github.studentrentalsystem"
 version = "1.0-SNAPSHOT"
 
 repositories {
+    maven {
+        name = "GitHubPackages"
+        url = uri("https://maven.pkg.github.com/studentrentalsystem/llmdataparser")
+        credentials {
+            username = System.getenv("USERNAME")
+            password = System.getenv("TOKEN")
+        }
+    }
     mavenCentral()
 }
 
@@ -15,6 +23,7 @@ dependencies {
     implementation(platform("org.mongodb:mongodb-driver-bom:5.4.0"))
     implementation("org.mongodb:mongodb-driver-sync")
     implementation("org.json:json:20231013")
+    implementation("io.github.studentrentalsystem:llmdataparser:1.0.0")
     testImplementation(platform("org.junit:junit-bom:5.10.0"))
     testImplementation("org.junit.jupiter:junit-jupiter")
 }
@@ -23,8 +32,8 @@ publishing {
     publications {
         create<MavenPublication>("gpr") {
             from(components["java"])
-            groupId = "xyz.jessyu"
-            artifactId = "facebook-crawler"
+            groupId = "io.github.studentrentalsystem"
+            artifactId = "facebook-rental-crawler"
             version = "1.0-SNAPSHOT"
         }
     }
@@ -34,8 +43,8 @@ publishing {
             name = "GitHubPackages"
             url = uri("https://maven.pkg.github.com/StudentRentalSystem/FacebookRentalCrawler")
             credentials {
-                username = System.getenv("GITHUB_ACTOR")
-                password = System.getenv("GITHUB_TOKEN")
+                username = System.getenv("USERNAME")
+                password = System.getenv("TOKEN")
             }
         }
     }
