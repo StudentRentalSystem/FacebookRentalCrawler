@@ -7,12 +7,12 @@ import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.FluentWait;
 import org.openqa.selenium.support.ui.Wait;
 
-
-import java.io.IOException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.time.Duration;
 import java.util.*;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
 
 /**
  * <p>
@@ -35,7 +35,9 @@ public class Crawler {
     private WebDriver driver;
     private Wait<WebDriver> wait;
     private JavascriptExecutor js;
-    private Map<String, String> postMap;
+    // This is to help check if the post already exists
+    private Set<String> postSet;
+    private final BlockingQueue<Post> queue;
 
     public Crawler(int scrollCount) {
         System.out.println("Initializing Facebook Crawler...");
@@ -56,7 +58,8 @@ public class Crawler {
                 .withTimeout(Duration.ofSeconds(3))
                 .pollingEvery(Duration.ofMillis(100));
         js = (JavascriptExecutor) driver;
-        postMap = new HashMap<>();
+        postSet = new HashSet<>();
+        queue = new LinkedBlockingQueue<>();
     }
 
     public void crawl() {
@@ -78,9 +81,10 @@ public class Crawler {
                 scrollDownOnePostEachTime(1);
                 Thread.sleep(1000);
             }
-            System.out.println("\nPress Enter to exit.");
-            System.in.read();
-        } catch (IOException | InterruptedException e) {
+            // Notify that the crawling is done
+            queue.add(Post.POISON_PILL);
+            System.out.println("\nExiting Facebook Crawler...");
+        } catch (InterruptedException e) {
             System.out.println(e.getMessage());
         } finally {
             driver.quit();
@@ -168,23 +172,30 @@ public class Crawler {
             sb.append(String.format("%02x", b));
         }
         String hashContent = sb.toString();
-        if(!postMap.containsKey(hashContent)){
-            postMap.put(hashContent, content);
+        if(!postSet.contains(hashContent)){
+            postSet.add(hashContent);
+            Post p = new Post(hashContent, content);
+            try {
+                queue.put(p);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            }
             return true;
         }
         return false;
     }
 
-    /**
-     * Get the crawled posts.
-     * @return A list of crawled posts (The content of the posts).
-     */
-    public List<String> getPostsList() {
-        List<String> posts = new ArrayList<>();
-        for (Map.Entry<String, String> entry : postMap.entrySet()) {
-            posts.add(entry.getValue());
-        }
-        return posts;
+    public BlockingQueue<Post> getQueue() {
+        return queue;
     }
 
+    public static class Post {
+        public final String id;
+        public final String content;
+        public Post(String id, String content) {
+            this.id = id;
+            this.content = content;
+        }
+        public static final Post POISON_PILL = new Post(null, null);
+    }
 }

@@ -3,6 +3,7 @@ package xyz.jessyu;
 import org.bson.Document;
 
 import java.util.List;
+import java.util.Map;
 
 public class Main {
     /**
@@ -15,9 +16,19 @@ public class Main {
     public static void main(String[] args) {
         int scrollCount = Integer.parseInt(args[0]);
         Crawler crawler = new Crawler(scrollCount);
-        crawler.crawl();
-        List<String> posts = crawler.getPostsList();
-        List<Document> processedPosts = ProcessPosts.processPosts(posts);
-        StoreToDB.insertManyPostToDB(processedPosts);
+        new Thread(crawler::crawl).start();
+        new Thread(()->{
+            try {
+                while (true) {
+                    Crawler.Post post = crawler.getQueue().take();
+                    if (post == Crawler.Post.POISON_PILL) break;
+                    System.out.println("Processing post: " + post.id);
+                    Document processedPost = ProcessPosts.processPost(post.content);
+                    StoreToDB.insertPostToDB(processedPost);
+                }
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            }
+        }).start();
     }
 }

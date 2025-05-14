@@ -18,9 +18,16 @@ public class StoreToDB {
     private static final String DB_COLLECTION = Settings.getDbCollection();
     private static final MongoClient mongoClient = MongoClients.create(new ConnectionString(DB_URL));
 
+    public static void insertPostToDB(Document post) {
+        MongoCollection<Document> collection = mongoClient.getDatabase(DB_NAME)
+                .getCollection(DB_COLLECTION);
+        collection.insertOne(post);
+    }
+
     public static void insertManyPostToDB(List<Document> posts) {
         MongoCollection<Document> collection = mongoClient.getDatabase(DB_NAME)
                 .getCollection(DB_COLLECTION);
         collection.insertMany(posts);
     }
+
 }
