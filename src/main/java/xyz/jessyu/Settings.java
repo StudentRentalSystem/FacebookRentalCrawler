@@ -8,6 +8,9 @@ public final class Settings {
     private static final String DB_URL = System.getenv("DB_URL");
     private static final String USER_HOME = System.getProperty("user.home");
     private static final String OS_NAME = System.getProperty("os.name");
+    private static final String DB_NAME = "app";
+    private static final String DB_COLLECTION = "house_rental";
+    private static final String LLM_NAME = "llama3:8b";
 
     public static String getChromeUserData() {
         String chromeUserData;
@@ -38,5 +41,17 @@ public final class Settings {
 
     public static String getDbUrl() {
         return DB_URL;
+    }
+
+    public static String getDbName() {
+        return DB_NAME;
+    }
+
+    public static String getDbCollection() {
+        return DB_COLLECTION;
+    }
+
+    public static String getLLMName() {
+        return LLM_NAME;
     }
 }

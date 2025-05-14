@@ -106,6 +106,7 @@ public class Crawler {
         List<WebElement> postElements = driver.findElements(By.xpath("//div[@data-ad-preview='message']"));
 
         for (WebElement post : postElements) {
+            if(post == null) continue;
             String text = post.getText().trim();
             if (!text.isEmpty() && !text.contains("See more")) {
                 System.out.println("------------------------");
@@ -178,7 +179,7 @@ public class Crawler {
      * Get the crawled posts.
      * @return A list of crawled posts (The content of the posts).
      */
-    public List<String> getPostMap() {
+    public List<String> getPostsList() {
         List<String> posts = new ArrayList<>();
         for (Map.Entry<String, String> entry : postMap.entrySet()) {
             posts.add(entry.getValue());

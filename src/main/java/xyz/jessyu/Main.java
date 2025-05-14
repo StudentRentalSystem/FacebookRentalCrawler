@@ -1,5 +1,9 @@
 package xyz.jessyu;
 
+import org.bson.Document;
+
+import java.util.List;
+
 public class Main {
     /**
      * <p>
@@ -12,6 +16,8 @@ public class Main {
         int scrollCount = Integer.parseInt(args[0]);
         Crawler crawler = new Crawler(scrollCount);
         crawler.crawl();
-
+        List<String> posts = crawler.getPostsList();
+        List<Document> processedPosts = ProcessPosts.processPosts(posts);
+        StoreToDB.insertManyPostToDB(processedPosts);
     }
 }
