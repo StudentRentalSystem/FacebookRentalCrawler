@@ -12,6 +12,19 @@ import java.util.List;
 public class ProcessPosts {
     private static final String LLM_NAME = Settings.getLLMName();
 
+    public static Document processPost(String post) {
+        Document processedPost = null;
+        try {
+            RentalExtractor extractor = new RentalExtractor();
+            JSONObject postJson = extractor.getJSONPost(post, LLM_NAME);
+            System.out.println(postJson.toString());
+            processedPost = Document.parse(postJson.toString());
+        } catch (JSONException | IOException e) {
+            e.printStackTrace();
+        }
+        return processedPost;
+    }
+
     public static List<Document> processPosts(List<String> posts) {
         List<Document> processedPosts = new ArrayList<>();
         try {
@@ -27,4 +40,5 @@ public class ProcessPosts {
         }
         return processedPosts;
     }
+
 }
