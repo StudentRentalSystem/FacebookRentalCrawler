@@ -9,7 +9,7 @@ version = "1.0-SNAPSHOT"
 repositories {
     maven {
         name = "GitHubPackages"
-        url = uri("https://maven.pkg.github.com/studentrentalsystem/llmdataparser")
+        url = uri("https://maven.pkg.github.com/StudentRentalSystem/llmdataparser")
         credentials {
             username = System.getenv("USERNAME")
             password = System.getenv("TOKEN")
@@ -23,7 +23,7 @@ dependencies {
     implementation(platform("org.mongodb:mongodb-driver-bom:5.4.0"))
     implementation("org.mongodb:mongodb-driver-sync")
     implementation("org.json:json:20231013")
-    implementation("io.github.studentrentalsystem:llmdataparser:1.0.0")
+    implementation("io.github.studentrentalsystem:llmdataparser:1.0.1")
     testImplementation(platform("org.junit:junit-bom:5.10.0"))
     testImplementation("org.junit.jupiter:junit-jupiter")
 }

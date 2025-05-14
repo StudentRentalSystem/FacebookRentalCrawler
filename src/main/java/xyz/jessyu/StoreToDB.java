@@ -5,43 +5,22 @@ import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoClients;
 import com.mongodb.client.MongoCollection;
 import org.bson.Document;
-import org.json.JSONException;
-import io.github.studentrentalsystem.RentalExtractor;
-import org.json.JSONObject;
 
-import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * <p>Store the posts into MongoDB</p>
+ * <p>Usage: Call the insertManyPostToDB function</p>
+ * */
 public class StoreToDB {
     private static final String DB_URL = Settings.getDbUrl();
-    public final MongoClient mongoClient = MongoClients.create(new ConnectionString(DB_URL));
-    private List<String> posts;
-    private List<Document> processedPosts;
+    private static final String DB_NAME = Settings.getDbName();
+    private static final String DB_COLLECTION = Settings.getDbCollection();
+    private static final MongoClient mongoClient = MongoClients.create(new ConnectionString(DB_URL));
 
-    public StoreToDB(List<String> posts) {
-        this.posts = posts;
-        this.processedPosts = new ArrayList<>();
-        processPosts();
-    }
-
-    private void processPosts() {
-        try {
-            RentalExtractor extractor = new RentalExtractor();
-            for(String post : posts) {
-                JSONObject postJson = extractor.getJSONPost(post, "llama3:8b");
-                System.out.println(postJson.toString());
-                Document doc = Document.parse(postJson.toString());
-                processedPosts.add(doc);
-            }
-        } catch (JSONException | IOException e) {
-            e.printStackTrace();
-        }
-    }
-
-    public void insertPostToDB() {
-        MongoCollection<Document> collection = mongoClient.getDatabase("app")
-                .getCollection("house_rental");
-        collection.insertMany(processedPosts);
+    public static void insertManyPostToDB(List<Document> posts) {
+        MongoCollection<Document> collection = mongoClient.getDatabase(DB_NAME)
+                .getCollection(DB_COLLECTION);
+        collection.insertMany(posts);
     }
 }
