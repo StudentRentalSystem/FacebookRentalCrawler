@@ -11,8 +11,8 @@ repositories {
         name = "GitHubPackages"
         url = uri("https://maven.pkg.github.com/StudentRentalSystem/llmdataparser")
         credentials {
-            username = System.getenv("USERNAME")
-            password = System.getenv("TOKEN")
+            username = System.getenv("READ_PACKAGE_USERNAME")
+            password = System.getenv("READ_PACKAGE_TOKEN")
         }
     }
     mavenCentral()
@@ -44,8 +44,8 @@ publishing {
             name = "GitHubPackages"
             url = uri("https://maven.pkg.github.com/StudentRentalSystem/FacebookRentalCrawler")
             credentials {
-                username = System.getenv("USERNAME")
-                password = System.getenv("TOKEN")
+                username = System.getenv("PUBLISH_USERNAME")
+                password = System.getenv("PUBLISH_TOKEN")
             }
         }
     }
