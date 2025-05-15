@@ -1,11 +1,11 @@
 package xyz.jessyu;
 
 import org.bson.Document;
-
-import java.util.List;
-import java.util.Map;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class Main {
+    private static final Logger logger = LoggerFactory.getLogger(Main.class);
     /**
      * <p>
      *     This is the main class for the Facebook Crawler.
@@ -22,7 +22,7 @@ public class Main {
                 while (true) {
                     Crawler.Post post = crawler.getQueue().take();
                     if (post == Crawler.Post.POISON_PILL) break;
-                    System.out.println("Processing post: " + post.id);
+                    logger.info("Processing post: {}", post);
                     Document processedPost = ProcessPosts.processPost(post.content);
                     StoreToDB.insertPostToDB(processedPost);
                 }

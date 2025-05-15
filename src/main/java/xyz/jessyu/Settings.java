@@ -11,6 +11,7 @@ public final class Settings {
     private static final String DB_NAME = "app";
     private static final String DB_COLLECTION = "house_rental";
     private static final String LLM_NAME = "llama3:8b";
+    private static final int RETRY_ATTEMPTS = 5;
 
     public static String getChromeUserData() {
         String chromeUserData;
@@ -54,4 +55,6 @@ public final class Settings {
     public static String getLLMName() {
         return LLM_NAME;
     }
+
+    public static int getRetryAttempts() { return RETRY_ATTEMPTS; }
 }

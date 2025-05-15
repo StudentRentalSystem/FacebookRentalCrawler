@@ -4,41 +4,37 @@ import io.github.studentrentalsystem.RentalExtractor;
 import org.bson.Document;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
 
 public class ProcessPosts {
     private static final String LLM_NAME = Settings.getLLMName();
+    private static final Logger logger = LoggerFactory.getLogger(ProcessPosts.class);
 
     public static Document processPost(String post) {
         Document processedPost = null;
-        try {
-            RentalExtractor extractor = new RentalExtractor();
-            JSONObject postJson = extractor.getJSONPost(post, LLM_NAME);
-            System.out.println(postJson.toString());
-            processedPost = Document.parse(postJson.toString());
-        } catch (JSONException | IOException e) {
-            e.printStackTrace();
+        JSONObject postJson = null;
+        int attempts = 0;
+        boolean success = false;
+        logger.info("Processing post: " + post);
+        while(attempts < Settings.getRetryAttempts() && !success){
+            try {
+                RentalExtractor extractor = new RentalExtractor();
+                postJson = extractor.getJSONPost(post, LLM_NAME);
+
+                System.out.println(postJson.toString());
+                processedPost = Document.parse(postJson.toString());
+                success = true;
+            } catch (IOException e) {
+                e.printStackTrace();
+                break;
+            } catch(JSONException e) {
+                attempts++;
+                logger.error("Error parsing JSON");
+            }
         }
         return processedPost;
     }
-
-    public static List<Document> processPosts(List<String> posts) {
-        List<Document> processedPosts = new ArrayList<>();
-        try {
-            RentalExtractor extractor = new RentalExtractor();
-            for(String post : posts) {
-                JSONObject postJson = extractor.getJSONPost(post, LLM_NAME);
-                System.out.println(postJson.toString());
-                Document doc = Document.parse(postJson.toString());
-                processedPosts.add(doc);
-            }
-        } catch (JSONException | IOException e) {
-            e.printStackTrace();
-        }
-        return processedPosts;
-    }
-
 }

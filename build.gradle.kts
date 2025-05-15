@@ -24,6 +24,7 @@ dependencies {
     implementation("org.mongodb:mongodb-driver-sync")
     implementation("org.json:json:20231013")
     implementation("io.github.studentrentalsystem:llmdataparser:1.0.1")
+    implementation("ch.qos.logback:logback-classic:1.2.11")
     testImplementation(platform("org.junit:junit-bom:5.10.0"))
     testImplementation("org.junit.jupiter:junit-jupiter")
 }
