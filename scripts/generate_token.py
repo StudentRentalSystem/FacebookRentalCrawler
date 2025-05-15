@@ -2,23 +2,15 @@ import jwt
 import time
 import requests
 import os
-import base64
 import sys
-from pathlib import Path
 
 APP_ID = os.getenv("GH_APP_ID")
 TARGET_ACCOUNT = os.getenv("TARGET_ACCOUNT")
-PRIVATE_KEY_PATH = os.getenv("GH_APP_PRIVATE_KEY")
+PRIVATE_KEY_STR = os.getenv("GH_APP_PRIVATE_KEY")
 
-if not APP_ID or not TARGET_ACCOUNT:
-    print("❌ 請設定 GH_APP_ID 與 TARGET_ACCOUNT")
+if not APP_ID or not TARGET_ACCOUNT or not PRIVATE_KEY_STR:
+    print("❌ 請設定 GH_APP_ID、TARGET_ACCOUNT 與 GH_APP_PRIVATE_KEY")
     sys.exit(1)
-
-def load_private_key(path: str) -> str:
-    if not Path(path).exists():
-        print(f"❌ 找不到私鑰檔案：{path}")
-        sys.exit(1)
-    return Path(path).read_text()
 
 def generate_jwt(app_id: str, private_key: str):
     now = int(time.time())
@@ -53,8 +45,7 @@ def get_access_token(jwt_token: str, installation_id: int):
     return resp.json()["token"]
 
 def main():
-    private_key = load_private_key(PRIVATE_KEY_PATH)
-    jwt_token = generate_jwt(APP_ID, private_key)
+    jwt_token = generate_jwt(APP_ID, PRIVATE_KEY_STR)
     installation_id = get_installation_id(jwt_token, TARGET_ACCOUNT)
     token = get_access_token(jwt_token, installation_id)
     print(token)
