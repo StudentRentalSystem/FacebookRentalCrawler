@@ -11,8 +11,8 @@ repositories {
         name = "GitHubPackages"
         url = uri("https://maven.pkg.github.com/StudentRentalSystem/llmdataparser")
         credentials {
-            username = System.getenv("USERNAME")
-            password = System.getenv("TOKEN")
+            username = System.getenv("READ_PACKAGE_USERNAME")
+            password = System.getenv("READ_PACKAGE_TOKEN")
         }
     }
     mavenCentral()
@@ -24,6 +24,7 @@ dependencies {
     implementation("org.mongodb:mongodb-driver-sync")
     implementation("org.json:json:20231013")
     implementation("io.github.studentrentalsystem:llmdataparser:1.0.1")
+    implementation("ch.qos.logback:logback-classic:1.2.11")
     testImplementation(platform("org.junit:junit-bom:5.10.0"))
     testImplementation("org.junit.jupiter:junit-jupiter")
 }
@@ -43,8 +44,8 @@ publishing {
             name = "GitHubPackages"
             url = uri("https://maven.pkg.github.com/StudentRentalSystem/FacebookRentalCrawler")
             credentials {
-                username = System.getenv("USERNAME")
-                password = System.getenv("TOKEN")
+                username = System.getenv("PUBLISH_USERNAME")
+                password = System.getenv("PUBLISH_TOKEN")
             }
         }
     }

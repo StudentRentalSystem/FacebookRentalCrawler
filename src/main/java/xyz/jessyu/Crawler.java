@@ -6,6 +6,8 @@ import org.openqa.selenium.chrome.ChromeOptions;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.FluentWait;
 import org.openqa.selenium.support.ui.Wait;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -30,6 +32,7 @@ public class Crawler {
     private static final String FACEBOOK = Settings.getFacebookUrl();
     private static final String GROUP_URL = Settings.getGroupUrl();
     private static final String CHROME_USER_DATA = Settings.getChromeUserData();
+    private static final Logger logger = LoggerFactory.getLogger(Crawler.class);
     private int scrollCount;
     private ChromeOptions options;
     private WebDriver driver;
@@ -40,19 +43,17 @@ public class Crawler {
     private final BlockingQueue<Post> queue;
 
     public Crawler(int scrollCount) {
-        System.out.println("Initializing Facebook Crawler...");
-        System.out.println("Facebook URL: " + FACEBOOK);
-        System.out.println("Group URL: " + GROUP_URL);
-        System.out.println("Chrome User Data Directory: " + CHROME_USER_DATA);
+        logger.info("Starting Crawler");
+        logger.info("Group URL: {}", GROUP_URL);
+        logger.info("Chrome User Data: {}", CHROME_USER_DATA);
+
         options = new ChromeOptions();
         options.addArguments("user-data-dir=" + CHROME_USER_DATA);
         options.addArguments("profile-directory=Default");
 
-        System.out.println("Chrome Profile Directory: Default");
         driver = new ChromeDriver(options);
 
-        System.out.println("Facebook Crawler initialized.");
-
+        logger.info("Facebook Crawler initialized.");
         this.scrollCount =  scrollCount;
         wait = new FluentWait<>(driver)
                 .withTimeout(Duration.ofSeconds(3))
@@ -64,7 +65,7 @@ public class Crawler {
 
     public void crawl() {
         try {
-            System.out.println("Starting Facebook Crawler...");
+            logger.info("Starting Facebook Crawler...");
             driver.get(FACEBOOK);
             wait.until(
                     ExpectedConditions.urlContains(FACEBOOK)
@@ -83,7 +84,7 @@ public class Crawler {
             }
             // Notify that the crawling is done
             queue.add(Post.POISON_PILL);
-            System.out.println("\nExiting Facebook Crawler...");
+            logger.info("Facebook Crawler finished.");
         } catch (InterruptedException e) {
             System.out.println(e.getMessage());
         } finally {
@@ -103,7 +104,7 @@ public class Crawler {
                     Thread.sleep(1000);
                 }
             } catch (Exception e) {
-                System.out.println("Skip a `See more`： " + e.getMessage());
+                logger.warn("Skip a `See more`");
             }
         }
         // Wait for the posts to load
@@ -118,7 +119,7 @@ public class Crawler {
                 System.out.println("------------------------");
                 boolean result = addPost(text);
                 if(!result) {
-                    System.out.println("The post has existed.");
+                    logger.info("The post has existed");
                 }
             }
         }
@@ -136,7 +137,7 @@ public class Crawler {
 
                 // Check if the posts list is empty
                 if (posts.isEmpty()) {
-                    System.out.println("Unable to find the posts.");
+                    logger.warn("Unable to find the posts");
                     break;
                 }
 
@@ -148,7 +149,7 @@ public class Crawler {
                 Thread.sleep(600);
 
             } catch (Exception e) {
-                System.out.println("Scrolling error：" + e.getMessage());
+                logger.error("Scrolling Error");
             }
         }
     }
