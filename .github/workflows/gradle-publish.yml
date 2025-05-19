@@ -14,21 +14,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Install Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.11'
-      - name: Install Python dependencies
-        run: pip install PyJWT requests cryptography
-
-      - name: Get GitHub App Token
-        run: |
-          echo "READ_PACKAGE_TOKEN=$(python scripts/generate_token.py)" >> $GITHUB_ENV
-        env:
-          GH_APP_ID: ${{secrets.GH_APP_ID}}
-          GH_APP_PRIVATE_KEY: ${{ secrets.GH_APP_PRIVATE_KEY }}
-          TARGET_ACCOUNT: "StudentRentalSystem"
-
       - name: Set up JDK 17
         uses: actions/setup-java@v4
         with:
@@ -44,8 +29,7 @@ jobs:
       - name: Build with Gradle
         run: ./gradlew build
         env:
-          READ_PACKAGE_USERNAME: x-access-token
-          READ_PACKAGE_TOKEN: ${{ env.READ_PACKAGE_TOKEN }}
+          CLIENT_TOKEN: ${{ secrets.CLIENT_TOKEN }}
 
       - name: Publish to GitHub Packages
         run: ./gradlew publish
