@@ -1,5 +1,6 @@
 package xyz.jessyu;
 
+import io.github.studentrentalsystem.LLMClient;
 import io.github.studentrentalsystem.RentalExtractor;
 import org.bson.Document;
 import org.json.JSONException;
@@ -10,7 +11,7 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 
 public class ProcessPosts {
-    private static final String LLM_NAME = Settings.getLLMName();
+    private static final LLMClient.ModelType LLM_MODEL_TYPE = Settings.getLlmModelType();
     private static final Logger logger = LoggerFactory.getLogger(ProcessPosts.class);
 
     public static Document processPost(String post) {
@@ -22,7 +23,7 @@ public class ProcessPosts {
         while(attempts < Settings.getRetryAttempts() && !success){
             try {
                 RentalExtractor extractor = new RentalExtractor();
-                postJson = extractor.getJSONPost(post, LLM_NAME);
+                postJson = extractor.getJSONPostNoError(post, LLM_MODEL_TYPE);
 
                 System.out.println(postJson.toString());
                 processedPost = Document.parse(postJson.toString());

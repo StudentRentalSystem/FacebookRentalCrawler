@@ -1,5 +1,7 @@
 package xyz.jessyu;
 
+import io.github.studentrentalsystem.LLMClient;
+
 import java.io.File;
 
 public final class Settings {
@@ -10,7 +12,7 @@ public final class Settings {
     private static final String OS_NAME = System.getProperty("os.name");
     private static final String DB_NAME = "app";
     private static final String DB_COLLECTION = "house_rental";
-    private static final String LLM_NAME = "llama3:8b";
+    private static final LLMClient.ModelType LLM_MODEL_TYPE = LLMClient.ModelType.LLAMA3_8B;
     private static final int RETRY_ATTEMPTS = 5;
 
     public static String getChromeUserData() {
@@ -52,8 +54,8 @@ public final class Settings {
         return DB_COLLECTION;
     }
 
-    public static String getLLMName() {
-        return LLM_NAME;
+    public static LLMClient.ModelType getLlmModelType() {
+        return LLM_MODEL_TYPE;
     }
 
     public static int getRetryAttempts() { return RETRY_ATTEMPTS; }

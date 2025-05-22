@@ -24,28 +24,36 @@ chromedriver
 
 Facebook 帳號（已登入）
 
-MongoDB（選用）
+MongoDB
 
 🛠 環境變數
 需設定以下環境變數：
 
 名稱	說明
-FACEBOOK_GROUP_URL	欲爬取的 Facebook 社團網址
-DB_URL	MongoDB 連線字串（選用，目前尚未寫入）
+FACEBOOK_GROUP_URL: 欲爬取的 Facebook 社團網址
+DB_URL:	MongoDB 連線字串
+CLIENT_TOKEN: GitHub Personal access token 用來抓取 LLMParser 
 
 📁 專案結構
 css
 複製
 編輯
-src/
-└── main/
-└── java/
-└── xyz/
-└── jessyu/
-├── Main.java
-├── Crawler.java
-├── StoreToDB.java
-└── Settings.java
+.
+├── main
+│   ├── java
+│   │   └── xyz
+│   │       └── jessyu
+│   │           ├── Crawler.java
+│   │           ├── Main.java
+│   │           ├── ProcessPosts.java
+│   │           ├── Settings.java
+│   │           └── StoreToDB.java
+│   └── resources
+│       └── logback.xml
+└── test
+└── java
+└── DBTest.java
+
 ▶️ 執行方式
 bash
 複製
@@ -67,10 +75,9 @@ java -cp build/libs/facebook-crawler.jar xyz.jessyu.Main 10
 
 擷取貼文內容
 
-結束時按 Enter 退出
+💾 MongoDB 儲存
+StoreToDB 類別預留了貼文處理與儲存功能
 
-💾 MongoDB 儲存（開發中）
-StoreToDB 類別預留了貼文處理與儲存功能，目前尚未完成。
 
 📦 發佈與 CI/CD
 你可以使用 GitHub Actions + Gradle 自動發佈到 GitHub Packages：
@@ -79,13 +86,3 @@ StoreToDB 類別預留了貼文處理與儲存功能，目前尚未完成。
 
 📝 授權
 MIT License
-
-需要我幫你把這個 README 加到專案的 README.md 中或幫你做成 GitHub Pages 頁面嗎？
-
-
-
-
-
-
-
-
