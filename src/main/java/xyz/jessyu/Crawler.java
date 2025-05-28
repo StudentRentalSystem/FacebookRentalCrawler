@@ -9,8 +9,6 @@ import org.openqa.selenium.support.ui.Wait;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.time.Duration;
 import java.util.*;
 import java.util.concurrent.BlockingQueue;
@@ -92,7 +90,7 @@ public class Crawler {
         }
     }
 
-    private void crawlOnePage() {
+    private void crawlOnePage() throws InterruptedException {
         List<WebElement> seeMoreButtons = driver.findElements(By.xpath("//div[text()='See more']"));
         // Expand all "See more" buttons
         for (WebElement button : seeMoreButtons) {
@@ -107,19 +105,34 @@ public class Crawler {
                 logger.warn("Skip a `See more`");
             }
         }
+        Thread.sleep(1000);
         // Wait for the posts to load
         List<WebElement> postElements = driver.findElements(By.xpath("//div[@data-ad-preview='message']"));
 
-        for (WebElement post : postElements) {
-            if(post == null) continue;
-            String text = post.getText().trim();
-            if (!text.isEmpty() && !text.contains("See more")) {
-                System.out.println("------------------------");
-                System.out.println(text);
-                System.out.println("------------------------");
-                boolean result = addPost(text);
-                if(!result) {
-                    logger.info("The post has existed");
+        for (int i = 0; i < postElements.size(); i++) {
+            boolean success = false;
+            for (int retry = 0; retry < 3 && !success; retry++) {
+                try {
+                    WebElement post = driver.findElements(By.xpath("//div[@data-ad-preview='message']")).get(i);
+                    if (post == null) continue;
+
+                    String text = post.getText().trim();
+                    if (!text.isEmpty() && !text.contains("See more")) {
+                        System.out.println("------------------------");
+                        System.out.println(text);
+                        System.out.println("------------------------");
+                        boolean result = addPost(text);
+                        if (!result) {
+                            logger.info("The post has existed");
+                        }
+                    }
+                    success = true;
+                } catch (StaleElementReferenceException e) {
+                    logger.warn("Retry post text extraction due to stale element");
+                    Thread.sleep(500);
+                } catch (Exception e) {
+                    logger.error("Unexpected error when processing post: " + e.getMessage());
+                    break;
                 }
             }
         }
@@ -161,20 +174,10 @@ public class Crawler {
      * @return the result of the operation.
      * */
     private boolean addPost(String content) {
-        MessageDigest digest = null;
-        try {
-            digest = MessageDigest.getInstance("SHA-1");
-        } catch (NoSuchAlgorithmException e) {
-            throw new RuntimeException(e);
-        }
-        byte[] hash = digest.digest(content.getBytes());
-        StringBuilder sb = new StringBuilder();
-        for(byte b : hash) {
-            sb.append(String.format("%02x", b));
-        }
-        String hashContent = sb.toString();
+        String hashContent = Utils.hashContent(content);
         if(!postSet.contains(hashContent)){
             postSet.add(hashContent);
+            System.out.println("Hashed content:" + hashContent);
             Post p = new Post(hashContent, content);
             try {
                 queue.put(p);
