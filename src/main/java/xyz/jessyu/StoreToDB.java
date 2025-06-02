@@ -4,6 +4,7 @@ import com.mongodb.ConnectionString;
 import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoClients;
 import com.mongodb.client.MongoCollection;
+import com.mongodb.client.result.InsertOneResult;
 import org.bson.Document;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,6 +25,13 @@ public class StoreToDB {
         logger.info("Inserting post into DB");
         MongoCollection<Document> collection = mongoClient.getDatabase(DB_NAME)
                 .getCollection(DB_COLLECTION);
-        collection.insertOne(post);
+        InsertOneResult result = collection.insertOne(post);
+        if(result.wasAcknowledged()) {
+            logger.info("Inserted post into DB");
+            System.out.println("Inserted post into DB");
+        } else {
+            logger.error("Failed inserting post into DB");
+            System.out.println("Inserted post into DB failed");
+        }
     }
 }

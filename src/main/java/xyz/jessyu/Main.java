@@ -4,6 +4,10 @@ import org.bson.Document;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
+
 public class Main {
     private static final Logger logger = LoggerFactory.getLogger(Main.class);
     /**
@@ -17,18 +21,27 @@ public class Main {
         int scrollCount = Integer.parseInt(args[0]);
         Crawler crawler = new Crawler(scrollCount);
         new Thread(crawler::crawl).start();
-        new Thread(()->{
+        ExecutorService executor = Executors.newFixedThreadPool(scrollCount/2);
+        while(true) {
             try {
-                while (true) {
-                    Crawler.Post post = crawler.getQueue().take();
-                    if (post == Crawler.Post.POISON_PILL) break;
-                    logger.info("Processing post: {}", post);
-                    Document processedPost = ProcessPosts.processPost(post.content);
-                    StoreToDB.insertPostToDB(processedPost);
-                }
+                Crawler.Post post = crawler.getQueue().take();
+                if(post == Crawler.Post.POISON_PILL) break;
+                executor.submit(() -> {
+                    try {
+                        logger.info("Processing post {}", post);
+                        Document processedPost = ProcessPosts.processPost(post.content);
+                        if(processedPost != null) {
+                            StoreToDB.insertPostToDB(processedPost);
+                        }
+                    } catch(Exception e) {
+                        logger.error("Error while processing post {}", post, e);
+                    }
+                });
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
+                break;
             }
-        }).start();
+        }
+        executor.shutdown();
     }
 }

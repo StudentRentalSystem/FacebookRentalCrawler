@@ -13,7 +13,7 @@ public final class Settings {
     private static final String DB_NAME = "app";
     private static final String DB_COLLECTION = "house_rental";
     private static final LLMClient.ModelType LLM_MODEL_TYPE = LLMClient.ModelType.LLAMA3_8B;
-    private static final int RETRY_ATTEMPTS = 5;
+    private static final int RETRY_ATTEMPTS = 1;
 
     public static String getChromeUserData() {
         String chromeUserData;
