@@ -1,6 +1,8 @@
 package xyz.jessyu;
 
 import com.mongodb.ConnectionString;
+import com.mongodb.DuplicateKeyException;
+import com.mongodb.MongoWriteException;
 import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoClients;
 import com.mongodb.client.MongoCollection;
@@ -25,13 +27,11 @@ public class StoreToDB {
         logger.info("Inserting post into DB");
         MongoCollection<Document> collection = mongoClient.getDatabase(DB_NAME)
                 .getCollection(DB_COLLECTION);
-        InsertOneResult result = collection.insertOne(post);
-        if(result.wasAcknowledged()) {
-            logger.info("Inserted post into DB");
-            System.out.println("Inserted post into DB");
-        } else {
-            logger.error("Failed inserting post into DB");
-            System.out.println("Inserted post into DB failed");
+        try {
+            collection.insertOne(post);
+        } catch(MongoWriteException e) {
+            logger.error("Duplicate key found in database");
+            System.out.println("Duplicate key found in database");
         }
     }
 }

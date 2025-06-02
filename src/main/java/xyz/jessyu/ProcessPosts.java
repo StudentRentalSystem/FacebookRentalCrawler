@@ -27,7 +27,7 @@ public class ProcessPosts {
 
                 System.out.println(postJson.toString());
                 processedPost = Document.parse(postJson.toString());
-                processedPost.put("_id", Utils.hashContent(postJson.toString()));
+                processedPost.put("_id", Utils.hashContent(post));
                 success = true;
             } catch (IOException e) {
                 e.printStackTrace();
