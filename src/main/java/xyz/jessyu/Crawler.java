@@ -39,6 +39,13 @@ public class Crawler {
     // This is to help check if the post already exists
     private Set<String> postSet;
     private final BlockingQueue<Post> queue;
+    // These three are for posts content and photos
+    private static final String post_photo_relative_xpath = ".//div/*/a/*/*/div/img";
+    private static final String post_content_relative_xpath = "//div[@data-ad-preview='message']";
+    private static final String[] post_xpath_identifiers = {
+            "x1yztbdb", "x1n2onr6", "xh8yej3", "x1ja2u2z"
+    };
+    private static final String post_xpath_identifier = generate_post_xpath_identifier_from_identifiers(post_xpath_identifiers);
 
     public Crawler(int scrollCount) {
         logger.info("Starting Crawler");
@@ -90,53 +97,115 @@ public class Crawler {
         }
     }
 
-    private void crawlOnePage() throws InterruptedException {
-        List<WebElement> seeMoreButtons = driver.findElements(By.xpath("//div[text()='See more']"));
-        // Expand all "See more" buttons
-        for (WebElement button : seeMoreButtons) {
+    // To parse both post content and photos
+    private static String generate_post_xpath_identifier_from_identifiers(String[] post_xpath_identifiers) {
+        String post_xpath_identifier = "//div[";
+        int count = 0;
+        for(String c :  post_xpath_identifiers) {
+            if(count != 0) post_xpath_identifier += " and ";
+            post_xpath_identifier += " contains(@class, " + c + ") ";
+            count++;
+        }
+        post_xpath_identifier = post_xpath_identifier + "]";
+        return post_xpath_identifier;
+    }
+
+    private void crawlOnePage() {
+        List<WebElement> posts = driver.findElements(By.xpath(post_xpath_identifier));
+        for(WebElement post : posts) {
+            crawlOnePost(post);
+        }
+    }
+
+    private void crawlOnePost(WebElement element) {
+        WebElement seeMore = element.findElement(By.xpath("//div[text()='See more']"));
+        // If there's a Chinese version
+        if(seeMore == null) {
+            seeMore = element.findElement(By.xpath("//div[text()='查看更多']"));
+        }
+        if(seeMore.isDisplayed()) {
             try {
-                if (button.isDisplayed()) {
-                    js.executeScript("arguments[0].scrollIntoView(true);", button);
-                    wait.until(ExpectedConditions.elementToBeClickable(button));
-                    js.executeScript("arguments[0].click();", button);
-                    Thread.sleep(1000);
-                }
-            } catch (Exception e) {
+                js.executeScript("arguments[0].scrollIntoView(true);", seeMore);
+                wait.until(ExpectedConditions.elementToBeClickable(seeMore));
+                js.executeScript("arguments[0].click();", seeMore);
+                Thread.sleep(1000);
+            } catch(Exception e) {
                 logger.warn("Skip a `See more`");
             }
         }
-        Thread.sleep(1000);
-        // Wait for the posts to load
-        List<WebElement> postElements = driver.findElements(By.xpath("//div[@data-ad-preview='message']"));
-
-        for (int i = 0; i < postElements.size(); i++) {
-            boolean success = false;
-            for (int retry = 0; retry < 3 && !success; retry++) {
-                try {
-                    WebElement post = driver.findElements(By.xpath("//div[@data-ad-preview='message']")).get(i);
-                    if (post == null) continue;
-
-                    String text = post.getText().trim();
-                    if (!text.isEmpty() && !text.contains("See more")) {
-                        System.out.println("------------------------");
-                        System.out.println(text);
-                        System.out.println("------------------------");
-                        boolean result = addPost(text);
-                        if (!result) {
-                            logger.info("The post has existed");
-                        }
-                    }
-                    success = true;
-                } catch (StaleElementReferenceException e) {
-                    logger.warn("Retry post text extraction due to stale element");
-                    Thread.sleep(500);
-                } catch (Exception e) {
-                    logger.error("Unexpected error when processing post: " + e.getMessage());
-                    break;
-                }
+        String postContent = crawlOnePostContent(element);
+        List<String> photoURLs = crawlOnePostPhotoURLs(element);
+        if(postContent != null) {
+            boolean result = addPost(postContent, photoURLs);
+            if(!result) {
+                logger.warn("The post has already been added.");
             }
         }
     }
+
+    private String crawlOnePostContent(WebElement element) {
+        String text = "";
+        try {
+            WebElement postContent = element.findElement(By.xpath(post_content_relative_xpath));
+            text = postContent.getText();
+        } catch (StaleElementReferenceException e) {
+            logger.warn("Retry post text extraction due to stale element");
+        } catch (Exception e) {
+            logger.error("Unexpected error when processing post: " + e.getMessage());
+        }
+        return text;
+    }
+
+    private List<String> crawlOnePostPhotoURLs(WebElement element) {
+        List<WebElement> photos = new ArrayList<>();
+        List<String> photoURLs = new ArrayList<>();
+        try {
+            photos = element.findElements(By.xpath(post_photo_relative_xpath));
+            for(WebElement photo : photos) {
+                String url = photo.getAttribute("src");
+                photoURLs.add(url);
+            }
+        } catch(Exception e) {
+            logger.error("Unexpected error when processing post photos: " + e.getMessage());
+        }
+        return photoURLs;
+    }
+
+    private boolean addPost(String content, List<String> photoURLs) {
+        String hashContent = Utils.hashContent(content);
+        if(!postSet.contains(hashContent)){
+            postSet.add(hashContent);
+            System.out.println("Hashed content:" + hashContent);
+            Post p = new Post(hashContent, content,  photoURLs);
+            try {
+                queue.put(p);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            }
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * Add a post to the post map.
+     * By using SHA-1 hash to check if the post already exists.
+     * If the post already exists, it will not be added again.
+     * @return the result of the operation.
+     * */
+    public static class Post {
+        public final String id;
+        public final String content;
+        public final List<String> photoURLs;
+        public Post(String id, String content, List<String> photoURLs) {
+            this.id = id;
+            this.content = content;
+            this.photoURLs = photoURLs;
+        }
+
+        public static final Post POISON_PILL = new Post(null, null, null);
+    }
+    //
 
     /**
      * Scroll down one post each time.
@@ -167,39 +236,9 @@ public class Crawler {
         }
     }
 
-    /**
-     * Add a post to the post map.
-     * By using SHA-1 hash to check if the post already exists.
-     * If the post already exists, it will not be added again.
-     * @return the result of the operation.
-     * */
-    private boolean addPost(String content) {
-        String hashContent = Utils.hashContent(content);
-        if(!postSet.contains(hashContent)){
-            postSet.add(hashContent);
-            System.out.println("Hashed content:" + hashContent);
-            Post p = new Post(hashContent, content);
-            try {
-                queue.put(p);
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-            }
-            return true;
-        }
-        return false;
-    }
 
     public BlockingQueue<Post> getQueue() {
         return queue;
     }
 
-    public static class Post {
-        public final String id;
-        public final String content;
-        public Post(String id, String content) {
-            this.id = id;
-            this.content = content;
-        }
-        public static final Post POISON_PILL = new Post(null, null);
-    }
 }
