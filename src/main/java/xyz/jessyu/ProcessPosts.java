@@ -24,8 +24,6 @@ public class ProcessPosts {
             try {
                 RentalExtractor extractor = new RentalExtractor();
                 postJson = extractor.getJSONPostNoError(post, LLM_MODEL_TYPE);
-
-                System.out.println(postJson.toString());
                 processedPost = Document.parse(postJson.toString());
                 processedPost.put("_id", Utils.hashContent(post));
                 success = true;

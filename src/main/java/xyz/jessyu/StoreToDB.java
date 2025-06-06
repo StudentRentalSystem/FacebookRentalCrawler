@@ -6,7 +6,6 @@ import com.mongodb.MongoWriteException;
 import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoClients;
 import com.mongodb.client.MongoCollection;
-import com.mongodb.client.result.InsertOneResult;
 import org.bson.Document;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,7 +28,7 @@ public class StoreToDB {
                 .getCollection(DB_COLLECTION);
         try {
             collection.insertOne(post);
-        } catch(MongoWriteException e) {
+        } catch(DuplicateKeyException | MongoWriteException e) {
             logger.error("Duplicate key found in database");
             System.out.println("Duplicate key found in database");
         }

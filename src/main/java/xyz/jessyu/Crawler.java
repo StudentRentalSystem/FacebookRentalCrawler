@@ -40,12 +40,13 @@ public class Crawler {
     private Set<String> postSet;
     private final BlockingQueue<Post> queue;
     // These three are for posts content and photos
+    private static final int MAGIC_SLEEP_TIME = 1000;
     private static final String post_photo_relative_xpath = ".//div/*/a/*/*/div/img";
     private static final String post_content_relative_xpath = "//div[@data-ad-preview='message']";
     private static final String[] post_xpath_identifiers = {
             "x1yztbdb", "x1n2onr6", "xh8yej3", "x1ja2u2z"
     };
-    private static final String post_xpath_identifier = generate_post_xpath_identifier_from_identifiers(post_xpath_identifiers);
+    private static final String post_xpath_identifier = generate_post_xpath_identifier_from_identifiers();
 
     public Crawler(int scrollCount) {
         logger.info("Starting Crawler");
@@ -84,8 +85,8 @@ public class Crawler {
             // Scroll one post each time
             for(int i = 0 ; i < scrollCount; i++) {
                 crawlOnePage();
-                scrollDownOnePostEachTime(1);
-                Thread.sleep(1000);
+                scrollDownOnePostEachTime();
+                Thread.sleep(MAGIC_SLEEP_TIME);
             }
             // Notify that the crawling is done
             queue.add(Post.POISON_PILL);
@@ -97,19 +98,43 @@ public class Crawler {
         }
     }
 
-    // To parse both post content and photos
-    private static String generate_post_xpath_identifier_from_identifiers(String[] post_xpath_identifiers) {
+    /**
+     * <p>
+     *     This method is used to create relative xpath for a whole post (including both content and photos) from class names.
+     * </p>
+     * */
+    private static String generate_post_xpath_identifier_from_identifiers() {
         String post_xpath_identifier = "//div[";
-        int count = 0;
-        for(String c :  post_xpath_identifiers) {
-            if(count != 0) post_xpath_identifier += " and ";
+        boolean first = true;
+        for(String c : Crawler.post_xpath_identifiers) {
+            if(!first) {
+                post_xpath_identifier += " and ";
+            }
             post_xpath_identifier += " contains(@class, " + c + ") ";
-            count++;
+            first = false;
         }
         post_xpath_identifier = post_xpath_identifier + "]";
         return post_xpath_identifier;
     }
 
+    private void expand_a_see_more_button(WebElement seeMoreButton) {
+        if(seeMoreButton != null && seeMoreButton.isDisplayed()) {
+            try {
+                js.executeScript("arguments[0].scrollIntoView(true);", seeMoreButton);
+                wait.until(ExpectedConditions.elementToBeClickable(seeMoreButton));
+                js.executeScript("arguments[0].click();", seeMoreButton);
+                Thread.sleep(MAGIC_SLEEP_TIME);
+            } catch(Exception e) {
+                logger.warn("Skip a `See more`");
+            }
+        }
+    }
+    /**
+     * <p>
+     *     This is the method for crawling a single page.
+     *     First step is to expand all see more buttons to prevent stale element from happening.
+     * </p>
+     * */
     private void crawlOnePage() {
         List<WebElement> posts = driver.findElements(By.xpath(post_xpath_identifier));
         for(WebElement post : posts) {
@@ -117,30 +142,50 @@ public class Crawler {
         }
     }
 
+    /**
+     * <p> This method is for crawling a post. </p>
+     * */
     private void crawlOnePost(WebElement element) {
-        WebElement seeMore = element.findElement(By.xpath("//div[text()='See more']"));
-        // If there's a Chinese version
-        if(seeMore == null) {
-            seeMore = element.findElement(By.xpath("//div[text()='查看更多']"));
-        }
-        if(seeMore.isDisplayed()) {
-            try {
-                js.executeScript("arguments[0].scrollIntoView(true);", seeMore);
-                wait.until(ExpectedConditions.elementToBeClickable(seeMore));
-                js.executeScript("arguments[0].click();", seeMore);
-                Thread.sleep(1000);
-            } catch(Exception e) {
-                logger.warn("Skip a `See more`");
+        WebElement seeMoreButton = null;
+
+        try {
+            // 嘗試抓英文 See more
+            List<WebElement> seeMoreButtons = element.findElements(By.xpath(".//div[text()='See more']"));
+            if (!seeMoreButtons.isEmpty()) {
+                seeMoreButton = seeMoreButtons.get(0);
+            } else {
+                // 若沒有英文，再抓中文
+                seeMoreButtons = element.findElements(By.xpath(".//div[text()='查看更多']"));
+                if (!seeMoreButtons.isEmpty()) {
+                    seeMoreButton = seeMoreButtons.get(0);
+                }
             }
+        } catch (StaleElementReferenceException e) {
+            logger.warn("See more button 已失效 (StaleElement)，略過展開");
+        } catch (Exception e) {
+            logger.warn("取得 See more button 發生錯誤：{}", e.getMessage());
         }
+
+
+        if (seeMoreButton != null) {
+            expand_a_see_more_button(seeMoreButton);
+        }
+        element = driver.findElement(By.xpath(post_xpath_identifier));
+
         String postContent = crawlOnePostContent(element);
-        List<String> photoURLs = crawlOnePostPhotoURLs(element);
-        if(postContent != null) {
-            boolean result = addPost(postContent, photoURLs);
-            if(!result) {
-                logger.warn("The post has already been added.");
-            }
+        if (postContent == null || postContent.isEmpty()) {
+            logger.info("貼文內容為空，略過");
+            return;
         }
+
+        String hash = Utils.hashContent(postContent);
+        if (postSet.contains(hash)) {
+            logger.debug("已處理過貼文: {}", hash);
+            return;
+        }
+
+        List<String> photoURLs = crawlOnePostPhotoURLs(element);
+        addPost(postContent, photoURLs);
     }
 
     private String crawlOnePostContent(WebElement element) {
@@ -157,7 +202,7 @@ public class Crawler {
     }
 
     private List<String> crawlOnePostPhotoURLs(WebElement element) {
-        List<WebElement> photos = new ArrayList<>();
+        List<WebElement> photos;
         List<String> photoURLs = new ArrayList<>();
         try {
             photos = element.findElements(By.xpath(post_photo_relative_xpath));
@@ -171,20 +216,17 @@ public class Crawler {
         return photoURLs;
     }
 
-    private boolean addPost(String content, List<String> photoURLs) {
+    private void addPost(String content, List<String> photoURLs) {
         String hashContent = Utils.hashContent(content);
-        if(!postSet.contains(hashContent)){
-            postSet.add(hashContent);
-            System.out.println("Hashed content:" + hashContent);
-            Post p = new Post(hashContent, content,  photoURLs);
-            try {
-                queue.put(p);
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-            }
-            return true;
+
+        postSet.add(hashContent);
+        System.out.println("Hashed content:" + hashContent);
+        Post p = new Post(hashContent, content,  photoURLs);
+        try {
+            queue.put(p);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
         }
-        return false;
     }
 
     /**
@@ -211,28 +253,25 @@ public class Crawler {
      * Scroll down one post each time.
      * This method is used to scroll down the page to load more posts.
      * */
-    private void scrollDownOnePostEachTime(int times) {
-        for (int i = 0; i < times; i++) {
-            try {
-                // The posts in this html
-                List<WebElement> posts = driver.findElements(By.xpath("//div[@data-ad-preview='message']"));
+    private void scrollDownOnePostEachTime() {
+        try {
+            // The posts in this html
+            WebElement post = driver.findElement(By.xpath(post_content_relative_xpath));
 
-                // Check if the posts list is empty
-                if (posts.isEmpty()) {
-                    logger.warn("Unable to find the posts");
-                    break;
-                }
-
-                // Scroll to the last post
-                WebElement lastPost = posts.get(posts.size() - 1);
-
-                js.executeScript("arguments[0].scrollIntoView({behavior: 'smooth', block: 'end'});", lastPost);
-
-                Thread.sleep(600);
-
-            } catch (Exception e) {
-                logger.error("Scrolling Error");
+            // Check if the posts list is empty
+            if (post == null) {
+                logger.warn("Unable to find the posts");
+                System.out.println("Unable to find the posts");
+                return;
             }
+
+            // Scroll to the last post
+            Long height = (Long) js.executeScript("return arguments[0].offsetHeight;", post);
+            //js.executeScript("arguments[0].scrollIntoView({behavior: 'smooth', block: 'end'});", nextPost);
+            js.executeScript("window.scrollBy(0, arguments[0]);", 1.5*height);
+            Thread.sleep(600);
+        } catch (Exception e) {
+            logger.error("Scrolling Error");
         }
     }
 

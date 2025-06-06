@@ -30,7 +30,8 @@ public class Main {
                     try {
                         logger.info("Processing post {}", post);
                         Document processedPost = ProcessPosts.processPost(post.content);
-                        processedPost.append("照片", post.photoURLs);
+                        processedPost.put("照片", post.photoURLs);
+                        System.out.println(processedPost.toString());
                         if(processedPost != null) {
                             StoreToDB.insertPostToDB(processedPost);
                         }
