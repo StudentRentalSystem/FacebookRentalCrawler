@@ -1,6 +1,7 @@
 package xyz.jessyu;
 
 import io.github.studentrentalsystem.LLMClient;
+import io.github.studentrentalsystem.LLMConfig;
 
 import java.io.File;
 
@@ -12,8 +13,16 @@ public final class Settings {
     private static final String OS_NAME = System.getProperty("os.name");
     private static final String DB_NAME = "app";
     private static final String DB_COLLECTION = "house_rental";
-    private static final LLMClient.ModelType LLM_MODEL_TYPE = LLMClient.ModelType.LLAMA3_8B;
+    private static final LLMConfig.ModelType LLM_MODEL_TYPE = LLMConfig.ModelType.LLAMA3_8B;
     private static final int RETRY_ATTEMPTS = 1;
+    private static final LLMConfig llmConfig = new LLMConfig(
+            true,
+            System.getenv("LLM_SERVER_ADDRESS"),
+            Integer.parseInt(System.getenv("LLM_SERVER_PORT")),
+            LLM_MODEL_TYPE,
+            false,
+            null
+    );
 
     public static String getChromeUserData() {
         String chromeUserData;
@@ -54,9 +63,17 @@ public final class Settings {
         return DB_COLLECTION;
     }
 
-    public static LLMClient.ModelType getLlmModelType() {
+    public static LLMConfig.ModelType getLlmModelType() {
         return LLM_MODEL_TYPE;
     }
 
     public static int getRetryAttempts() { return RETRY_ATTEMPTS; }
+
+    public static LLMClient getLlmClient() {
+        return new LLMClient(llmConfig);
+    }
+
+    public static LLMConfig getLlmConfig() {
+        return llmConfig;
+    }
 }
