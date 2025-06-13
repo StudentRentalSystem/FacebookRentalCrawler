@@ -6,6 +6,11 @@ import io.github.studentrentalsystem.LLMConfig;
 import java.io.File;
 
 public final class Settings {
+    private static final String promptPath = "extract_prompt.txt";
+    private static final String rentalPostsPath = "rental_posts.json";
+    private static final String extractedDataPath = "extracted_data.json";
+    private static final String outputPath = "src/main/resources/" + extractedDataPath;
+
     private static final String FACEBOOK = "https://www.facebook.com/";
     private static final String GROUP_URL = System.getenv("FACEBOOK_GROUP_URL");
     private static final String DB_URL = System.getenv("DB_URL");
@@ -13,16 +18,32 @@ public final class Settings {
     private static final String OS_NAME = System.getProperty("os.name");
     private static final String DB_NAME = "app";
     private static final String DB_COLLECTION = "house_rental";
-    private static final LLMConfig.ModelType LLM_MODEL_TYPE = LLMConfig.ModelType.LLAMA3_8B;
+    private static final String LLM_MODEL_TYPE = "llama3:8b";
     private static final int RETRY_ATTEMPTS = 1;
     private static final LLMConfig llmConfig = new LLMConfig(
-            true,
+            LLMConfig.LLMMode.CHAT,
             System.getenv("LLM_SERVER_ADDRESS"),
             Integer.parseInt(System.getenv("LLM_SERVER_PORT")),
             LLM_MODEL_TYPE,
             false,
             null
     );
+
+    public static String getPromptPath() {
+        return promptPath;
+    }
+
+    public static String getRentalPostsPath() {
+        return rentalPostsPath;
+    }
+
+    public static String getExtractedDataPath() {
+        return extractedDataPath;
+    }
+
+    public static String getOutputPath() {
+        return outputPath;
+    }
 
     public static String getChromeUserData() {
         String chromeUserData;
@@ -63,7 +84,7 @@ public final class Settings {
         return DB_COLLECTION;
     }
 
-    public static LLMConfig.ModelType getLlmModelType() {
+    public static String getLlmModelType() {
         return LLM_MODEL_TYPE;
     }
 

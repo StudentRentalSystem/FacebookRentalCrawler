@@ -91,8 +91,8 @@ public class Crawler {
     }
 
     private void crawlOnePage() throws InterruptedException {
-        List<WebElement> seeMoreButtons = driver.findElements(By.xpath("//div[text()='See more']"));
-        // Expand all "See more" buttons
+        List<WebElement> seeMoreButtons = driver.findElements(By.xpath("//div[text()='查看更多']"));
+        // Expand all "查看更多" buttons
         for (WebElement button : seeMoreButtons) {
             try {
                 if (button.isDisplayed()) {
@@ -102,7 +102,7 @@ public class Crawler {
                     Thread.sleep(1000);
                 }
             } catch (Exception e) {
-                logger.warn("Skip a `See more`");
+                logger.warn("Skip a `查看更多`");
             }
         }
         Thread.sleep(1000);
@@ -117,7 +117,7 @@ public class Crawler {
                     if (post == null) continue;
 
                     String text = post.getText().trim();
-                    if (!text.isEmpty() && !text.contains("See more")) {
+                    if (!text.isEmpty() && !text.contains("查看更多")) {
                         System.out.println("------------------------");
                         System.out.println(text);
                         System.out.println("------------------------");

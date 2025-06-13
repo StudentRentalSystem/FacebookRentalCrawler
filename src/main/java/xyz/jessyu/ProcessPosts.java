@@ -1,5 +1,5 @@
 package xyz.jessyu;
-import io.github.studentrentalsystem.RentalExtractor;
+
 import org.bson.Document;
 import org.json.JSONException;
 import org.json.JSONObject;
