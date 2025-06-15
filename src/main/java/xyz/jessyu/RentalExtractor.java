@@ -16,7 +16,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import static io.github.studentrentalsystem.Utils.getStringJSON;
+import static xyz.jessyu.Utils.getStringJSON;
 
 
 /**
