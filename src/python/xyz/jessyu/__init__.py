@@ -8,25 +8,18 @@ processes them using LLM, and stores them in MongoDB.
 __version__ = "1.0.0"
 __author__ = "JessYu-1011, hding4915"
 
-from .crawler import Crawler, Post, POISON_PILL
-from .settings import Settings
-from .utils import hash_content, get_string_json
-from .fetch_all_ids import fetch_all_ids
-from .store_to_db import StoreToDB
-from .process_posts import process_post
-from .rental_extractor import RentalExtractor
-from .llm_client import LLMClient
+# Note: Imports are lazy to avoid requiring all dependencies
+# Import the modules you need directly, e.g.:
+# from xyz.jessyu.crawler import Crawler
+# from xyz.jessyu.settings import Settings
 
 __all__ = [
-    'Crawler',
-    'Post',
-    'POISON_PILL',
-    'Settings',
-    'hash_content',
-    'get_string_json',
+    'crawler',
+    'settings',
+    'utils',
     'fetch_all_ids',
-    'StoreToDB',
-    'process_post',
-    'RentalExtractor',
-    'LLMClient',
+    'store_to_db',
+    'process_posts',
+    'rental_extractor',
+    'llm_client',
 ]

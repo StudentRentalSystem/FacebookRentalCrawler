@@ -172,7 +172,16 @@ ollama pull llama3:8b
 ollama pull nomic-embed-text
 ```
 
-2. 安裝 Python 依賴套件：
+2. 設定環境變數：
+
+複製 `.env.example` 為 `.env` 並填入相關設定：
+
+```bash
+cp .env.example .env
+# 編輯 .env 檔案，填入你的 Facebook 社團網址和其他設定
+```
+
+3. 安裝 Python 依賴套件：
 
 ```bash
 pip install -r requirements.txt
@@ -180,13 +189,21 @@ pip install -r requirements.txt
 pip install -e .
 ```
 
-3. 執行爬蟲：
+4. 執行爬蟲：
 
 ```bash
-# 方式 1：使用模組執行
+# 方式 1：使用便利腳本（推薦）
+# Linux/macOS:
+./run_python.sh <SCROLL_COUNT>
+
+# Windows:
+run_python.bat <SCROLL_COUNT>
+
+# 方式 2：使用模組執行
+export PYTHONPATH="${PYTHONPATH}:$(pwd)/src/python"
 python -m xyz.jessyu.main <SCROLL_COUNT>
 
-# 方式 2：直接執行 main.py
+# 方式 3：直接執行 main.py
 cd src/python
 python -m xyz.jessyu.main <SCROLL_COUNT>
 ```
@@ -194,6 +211,8 @@ python -m xyz.jessyu.main <SCROLL_COUNT>
 範例：
 
 ```bash
+./run_python.sh 10
+# 或
 python -m xyz.jessyu.main 10
 ```
 
