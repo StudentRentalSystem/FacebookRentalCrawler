@@ -4,6 +4,7 @@ Utility functions for the Facebook Rental Crawler.
 import hashlib
 import json
 import re
+from typing import Optional
 
 
 def hash_content(content: str) -> str:
@@ -21,7 +22,7 @@ def hash_content(content: str) -> str:
     return digest.hexdigest()
 
 
-def get_string_json(text: str) -> dict:
+def get_string_json(text: str) -> Optional[dict]:
     """
     Extract JSON object from a string.
     
@@ -33,9 +34,22 @@ def get_string_json(text: str) -> dict:
     """
     try:
         start = text.find("{")
-        end = text.rfind("}")
+        if start == -1:
+            return None
         
-        if start == -1 or end == -1:
+        # Find matching closing brace by counting open/close braces
+        brace_count = 0
+        end = -1
+        for i in range(start, len(text)):
+            if text[i] == '{':
+                brace_count += 1
+            elif text[i] == '}':
+                brace_count -= 1
+                if brace_count == 0:
+                    end = i
+                    break
+        
+        if end == -1:
             return None
         
         json_str = text[start:end + 1]

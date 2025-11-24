@@ -37,12 +37,25 @@ class RentalExtractor:
     
     def _load_prompt_template(self) -> str:
         """Load the prompt template from resources."""
-        # Try to load from resources directory
-        resources_path = Path(__file__).parent.parent.parent.parent.parent / "src" / "main" / "resources" / self.prompt_path
+        # Try multiple paths to find the prompt template
+        
+        # First, try relative to this file (for development)
+        current_dir = Path(__file__).parent
+        resources_path = current_dir.parent.parent.parent.parent.parent / "src" / "main" / "resources" / self.prompt_path
         
         if resources_path.exists():
             with open(resources_path, 'r', encoding='utf-8') as f:
                 return f.read()
+        
+        # Try project root resources directory
+        try:
+            # Look for src/main/resources from current working directory
+            cwd_resources = Path.cwd() / "src" / "main" / "resources" / self.prompt_path
+            if cwd_resources.exists():
+                with open(cwd_resources, 'r', encoding='utf-8') as f:
+                    return f.read()
+        except Exception:
+            pass
         
         # Fallback to current directory
         current_path = Path(self.prompt_path)

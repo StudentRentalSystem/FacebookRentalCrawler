@@ -10,17 +10,28 @@ from .settings import Settings
 logger = logging.getLogger(__name__)
 
 
-class StoreToDB:
-    """Handle storing rental posts to MongoDB."""
+# Singleton MongoDB client
+_mongo_client = None
+_collection = None
+
+
+def _get_collection():
+    """Get or create MongoDB collection."""
+    global _mongo_client, _collection
     
-    def __init__(self):
-        """Initialize MongoDB connection."""
+    if _collection is None:
         db_url = Settings.get_db_url()
         db_name = Settings.get_db_name()
         db_collection = Settings.get_db_collection()
         
-        self.client = MongoClient(db_url)
-        self.collection = self.client[db_name][db_collection]
+        _mongo_client = MongoClient(db_url)
+        _collection = _mongo_client[db_name][db_collection]
+    
+    return _collection
+
+
+class StoreToDB:
+    """Handle storing rental posts to MongoDB."""
     
     @staticmethod
     def insert_post_to_db(post: dict):
@@ -33,17 +44,9 @@ class StoreToDB:
         logger.info("Inserting post into DB")
         
         try:
-            db_url = Settings.get_db_url()
-            db_name = Settings.get_db_name()
-            db_collection = Settings.get_db_collection()
-            
-            client = MongoClient(db_url)
-            collection = client[db_name][db_collection]
-            
+            collection = _get_collection()
             collection.insert_one(post)
             logger.info("Post inserted successfully")
-            
-            client.close()
         except DuplicateKeyError:
             logger.error("Duplicate key found in database")
             print("Duplicate key found in database")
