@@ -2,6 +2,8 @@
 
 由 **Selenium** 驅動的 Facebook 社團貼文爬蟲，具備自動滾動、展開「See more」、解析與結構化貼文等功能，支援串接 MongoDB 儲存。開發者：**JessYu-1011**, **hding4915**
 
+**此專案現已支援 Java 和 Python 兩種語言實作！**
+
 ---
 
 ### 📦 功能特色
@@ -19,8 +21,16 @@
 
 #### ✅ 環境需求
 
+##### Java 版本
 * Java 17+
 * Gradle
+* Chrome 瀏覽器與對應版本 chromedriver
+* 已登入的 Facebook 帳號（使用本機帳號登入）
+* MongoDB（可選）
+
+##### Python 版本
+* Python 3.8+
+* pip 或 conda
 * Chrome 瀏覽器與對應版本 chromedriver
 * 已登入的 Facebook 帳號（使用本機帳號登入）
 * MongoDB（可選）
@@ -75,6 +85,7 @@
 
 ## 🗂️ 專案檔案結構
 
+### Java 版本
 ```
 FacebookRentalCrawler/
 ├── .gradle/
@@ -104,9 +115,33 @@ FacebookRentalCrawler/
 └── settings.gradle.kts
 ```
 
+### Python 版本
+```
+FacebookRentalCrawler/
+├── src/
+│   └── python/
+│       └── xyz/
+│           └── jessyu/
+│               ├── __init__.py
+│               ├── crawler.py
+│               ├── fetch_all_ids.py
+│               ├── llm_client.py
+│               ├── main.py
+│               ├── process_posts.py
+│               ├── rental_extractor.py
+│               ├── settings.py
+│               ├── store_to_db.py
+│               └── utils.py
+├── requirements.txt
+├── setup.py
+└── README.md
+```
+
 ---
 
 ### ▶️ 執行方式
+
+#### Java 版本
 
 1. 安裝與執行 [Ollama](https://ollama.com/)，並拉取模型：
 
@@ -126,6 +161,40 @@ java -cp build/libs/facebook-crawler.jar xyz.jessyu.Main <SCROLL_COUNT>
 
 ```bash
 java -cp build/libs/facebook-crawler.jar xyz.jessyu.Main 10
+```
+
+#### Python 版本
+
+1. 安裝與執行 [Ollama](https://ollama.com/)，並拉取模型：
+
+```bash
+ollama pull llama3:8b
+ollama pull nomic-embed-text
+```
+
+2. 安裝 Python 依賴套件：
+
+```bash
+pip install -r requirements.txt
+# 或者使用 setup.py
+pip install -e .
+```
+
+3. 執行爬蟲：
+
+```bash
+# 方式 1：使用模組執行
+python -m xyz.jessyu.main <SCROLL_COUNT>
+
+# 方式 2：直接執行 main.py
+cd src/python
+python -m xyz.jessyu.main <SCROLL_COUNT>
+```
+
+範例：
+
+```bash
+python -m xyz.jessyu.main 10
 ```
 
 ---
