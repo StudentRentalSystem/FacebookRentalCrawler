@@ -1,5 +1,8 @@
 from setuptools import setup, find_packages
 
+with open("README.md", encoding="utf-8") as f:
+    long_description = f.read()
+
 setup(
     name="facebook-rental-crawler",
     version="1.0.0",
@@ -13,7 +16,7 @@ setup(
     python_requires=">=3.8",
     author="JessYu-1011, hding4915",
     description="Facebook Group Rental Crawler powered by Selenium",
-    long_description=open("README.md").read(),
+    long_description=long_description,
     long_description_content_type="text/markdown",
     classifiers=[
         "Programming Language :: Python :: 3",

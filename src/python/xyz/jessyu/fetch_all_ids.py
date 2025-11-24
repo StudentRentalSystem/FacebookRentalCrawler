@@ -6,6 +6,13 @@ from typing import List
 from .settings import Settings
 
 
+# Reuse the MongoDB client from store_to_db
+def _get_mongo_client():
+    """Get or create MongoDB client singleton."""
+    from .store_to_db import _get_collection
+    return _get_collection()
+
+
 def fetch_all_ids() -> List[str]:
     """
     Fetch all post IDs from MongoDB database.
@@ -15,21 +22,17 @@ def fetch_all_ids() -> List[str]:
     """
     try:
         db_url = Settings.get_db_url()
-        db_name = Settings.get_db_name()
-        db_collection = Settings.get_db_collection()
         
         if not db_url:
             return []
         
-        client = MongoClient(db_url)
-        collection = client[db_name][db_collection]
+        collection = _get_mongo_client()
         
         # Query only the _id field
         docs = collection.find({}, {"_id": 1})
         
         id_list = [str(doc["_id"]) for doc in docs]
         
-        client.close()
         return id_list
     except Exception as e:
         print(f"Error fetching IDs from database: {e}")

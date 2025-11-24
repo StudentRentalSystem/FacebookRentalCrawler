@@ -39,23 +39,22 @@ class RentalExtractor:
         """Load the prompt template from resources."""
         # Try multiple paths to find the prompt template
         
-        # First, try relative to this file (for development)
-        current_dir = Path(__file__).parent
-        resources_path = current_dir.parent.parent.parent.parent.parent / "src" / "main" / "resources" / self.prompt_path
-        
+        # First, try from project root (most common case)
+        resources_path = Path.cwd() / "src" / "main" / "resources" / self.prompt_path
         if resources_path.exists():
             with open(resources_path, 'r', encoding='utf-8') as f:
                 return f.read()
         
-        # Try project root resources directory
-        try:
-            # Look for src/main/resources from current working directory
-            cwd_resources = Path.cwd() / "src" / "main" / "resources" / self.prompt_path
-            if cwd_resources.exists():
-                with open(cwd_resources, 'r', encoding='utf-8') as f:
+        # Try relative to this module file (for package installs)
+        module_dir = Path(__file__).parent
+        for i in range(6):  # Try up to 6 levels up
+            test_path = module_dir
+            for _ in range(i):
+                test_path = test_path.parent
+            resources_path = test_path / "src" / "main" / "resources" / self.prompt_path
+            if resources_path.exists():
+                with open(resources_path, 'r', encoding='utf-8') as f:
                     return f.read()
-        except Exception:
-            pass
         
         # Fallback to current directory
         current_path = Path(self.prompt_path)

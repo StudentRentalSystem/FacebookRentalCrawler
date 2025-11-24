@@ -4,6 +4,7 @@ Main entry point for Facebook Rental Crawler.
 import sys
 import logging
 import threading
+from queue import Empty
 from concurrent.futures import ThreadPoolExecutor
 from .crawler import Crawler, POISON_PILL
 from .process_posts import process_post
@@ -52,7 +53,8 @@ def main():
     # Process posts from the queue
     while True:
         try:
-            post = crawler.get_queue().get()
+            # Use timeout to avoid indefinite blocking
+            post = crawler.get_queue().get(timeout=5)
             
             if post == POISON_PILL:
                 break
@@ -62,6 +64,12 @@ def main():
         except KeyboardInterrupt:
             logger.info("Interrupted by user")
             break
+        except Exception:
+            # Check if crawler thread is still alive
+            if not crawl_thread.is_alive():
+                logger.warning("Crawler thread terminated, stopping processing")
+                break
+            # Otherwise, continue waiting for posts
     
     # Shutdown executor and wait for completion
     executor.shutdown(wait=True)

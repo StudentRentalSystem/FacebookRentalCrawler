@@ -49,6 +49,5 @@ class StoreToDB:
             logger.info("Post inserted successfully")
         except DuplicateKeyError:
             logger.error("Duplicate key found in database")
-            print("Duplicate key found in database")
         except Exception as e:
             logger.error(f"Error inserting post to database: {e}")
